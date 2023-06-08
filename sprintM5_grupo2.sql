@@ -16,7 +16,7 @@ GRANT ALL PRIVILEGES ON DATABASE telovendo TO admintienda;
 /* Se crean las tablas de acuerdo a las especificaciones indicadas, definiendo
 un modelo entidad relación de acuerdo a diagrama adjunto. Para tener un modelo
 mas completo se agregan las entidades categorias, venta y detalle de ventas y 
-hacer poder relacionar a clientes con productos*/
+asi poder relacionar a clientes con productos*/
 
 -- Se crea la tabla clientes
 drop table if exists clientes;
