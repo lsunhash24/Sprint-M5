@@ -10,6 +10,14 @@ CREATE DATABASE telovendo;
 CREATE USER admintienda WITH SUPERUSER;
 GRANT ALL PRIVILEGES ON DATABASE telovendo TO admintienda;
 
+-- Nos cambiamos de usuario y base de datos desde la linea de comandos:
+ psql -U admintienda -d telovendo
+
+/* Se crean las tablas de acuerdo a las especificaciones indicadas, definiendo
+un modelo entidad relación de acuerdo a diagrama adjunto. Para tener un modelo
+mas completo se agregan las entidades categorias, venta y detalle de ventas y 
+hacer poder relacionar a clientes con productos*/
+
 -- Se crea la tabla clientes
 drop table if exists clientes;
 CREATE TABLE clientes
@@ -21,6 +29,21 @@ telefono varchar (12),
 direccion varchar(50),
 comuna varchar(20),
 correo varchar(20));
+
+-- Se crea la tabla ventas
+drop table if exists ventas;
+CREATE TABLE ventas
+(
+id_ventas int PRIMARY KEY,
+id_cliente int,
+id_detalle_ventas int,
+fecha_venta date,
+total_venta decimal,
+id_vendedor int,
+FOREIGN KEY (id_cliente) REFERENCES clientes(codigo));
+
+/* Se establece la relacion 1:n entre clientes y ventas, a través
+de la llave foranea de la tabla ventas */
 
 -- se crea la tabla categorias
 drop table if exists categorias;
@@ -53,10 +76,33 @@ id_categoria int,
 id_proveedor int,	
 precio float,
 color varchar(20),
-stock int,
+stock int CHECK(stock>=0),
 FOREIGN KEY (id_categoria) REFERENCES categorias(id),
 FOREIGN KEY (id_proveedor) REFERENCES proveedores(id));	
+	
+/* Se establece la relacion 1:n entre categorias y productos, a través
+de la lleve foranea de la tabla productos y 
+Se establece la relacion 1:n entre proveedores y productos, a través
+de la segunda llave foranea de la tabla productos */
 
+-- Se crea la tabla detalle_ventas
+drop table if exists detalle_ventas;
+CREATE TABLE detalle_ventas
+(
+id_detalle_ventas int PRIMARY KEY,
+id_ventas int,
+id_producto varchar(30),
+cantidad int,
+total_item decimal,
+FOREIGN KEY (id_ventas) REFERENCES ventas(id_ventas),
+FOREIGN KEY (id_producto) REFERENCES productos(sku));	
+
+/* Se establece la relacion 1:n entre ventas y detalle_ventas, a través
+de la lleve foranea de la tabla detalle_ventas 
+Se establece la relacion 1:n entre productos y detalle_ventas, a través
+de la llave foranea de la tabla detalle_ventas */
+	
+-- Ingreso de datos 
 -- Ingreso 5 clientes **
 
 INSERT INTO clientes (
@@ -106,11 +152,9 @@ VALUES
 ('mvs00815','Tester Fluke 90V', 5,5,365180,'amarillo',10),
 ('mvs00890','Nivel laser 870rx', 5,5,128500,'naranjo',7);
 
-
-
 /*Manipulación de datos - Consultas SQL.
 1. Identifique cual es la categoria que mas se repite.*/
- SELECT nombre_categoria FROM categorias
+ SELECT nombre_categoria cat_mas_repetida FROM categorias
  INNER JOIN productos on categorias.id = productos.id_categoria	
  GROUP BY nombre_categoria
  HAVING COUNT(*) = ( SELECT MAX(contador)
@@ -122,7 +166,7 @@ VALUES
  SELECT sku,nombre_producto,stock FROM productos ORDER BY stock DESC LIMIT 5;
 
 --3. Identifique el color común de los productos.
- SELECT color as mas_comun FROM productos 
+ SELECT color as color_mas_comun FROM productos 
  GROUP BY color
  HAVING COUNT(*) = (SELECT MAX(contador)
 				    FROM (SELECT color, COUNT(color) as contador 
